@@ -10,14 +10,14 @@ const createRelease = 'POST /repos/{owner}/{repo}/releases' as const
 const repoAssets =
   'GET /repos/{owner}/{repo}/releases/{release_id}/assets' as const
 const uploadAssets =
-  'POST /repos/{owner}/{repo}/releases/{release_id}/assets{?name,label}' as const
+  'POST {origin}/repos/{owner}/{repo}/releases/{release_id}/assets{?name,label}' as const
 const deleteAssets =
   'DELETE /repos/{owner}/{repo}/releases/assets/{asset_id}' as const
 
 type ReleaseByTagResp = Endpoints[typeof releaseByTag]['response']
 type CreateReleaseResp = Endpoints[typeof createRelease]['response']
 type RepoAssetsResp = Endpoints[typeof repoAssets]['response']['data']
-// type UploadAssetResp = Endpoints[typeof uploadAssets]['response']
+type UploadAssetResp = Endpoints[typeof uploadAssets]['response']
 
 async function get_release_by_tag(
   tag: string,
@@ -84,13 +84,20 @@ async function upload_to_release(
     )
   }
 
-  core.debug(`Uploading ${file} to ${asset_name} in release ${tag}.    XXX`)
-  const uploaded_asset = await octokit.request(uploadAssets, {
-    ...repo(),
-    release_id: release.data.id,
-    name: asset_name,
-    data: '@result/moc-0.8.0.js'
-  })
+  core.debug(
+    `Uploading ${file} to ${asset_name} in release ${tag}.    XXX ${JSON.stringify(
+      repo()
+    )}`
+  )
+  const uploaded_asset: UploadAssetResp = await octokit.request(
+    'POST {origin}/repos/{owner}/{repo}/releases/{release_id}/assets{?name,label}',
+    {
+      ...repo(),
+      release_id: release.data.id,
+      name: asset_name,
+      data: '@result/moc-0.8.0.js'
+    }
+  )
   return uploaded_asset.data.browser_download_url
 }
 
