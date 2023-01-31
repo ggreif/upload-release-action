@@ -85,7 +85,7 @@ async function upload_to_release(
   }
 
   core.debug(
-    `Uploading ${file} to ${asset_name} in release ${tag}.    XXX ${JSON.stringify(
+    `Uploading ${file} to ${asset_name} in release ${tag}.    GXXX ${JSON.stringify(
       repo()
     )}`
   )
@@ -95,7 +95,8 @@ async function upload_to_release(
       ...repo(),
       release_id: release.data.id,
       name: asset_name,
-      data: '@result/moc-0.8.0.js'
+      data: '@result/moc-0.8.0.js',
+      origin: 'https://uploads.github.com'
     }
   )
   return uploaded_asset.data.browser_download_url

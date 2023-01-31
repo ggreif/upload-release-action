@@ -84,8 +84,8 @@ function upload_to_release(release, file, asset_name, tag, overwrite, octokit) {
         else {
             core.debug(`RRRR No pre-existing asset called ${asset_name} found in release ${tag}. All good.`);
         }
-        core.debug(`Uploading ${file} to ${asset_name} in release ${tag}.    XXX ${JSON.stringify(repo())}`);
-        const uploaded_asset = yield octokit.request('POST {origin}/repos/{owner}/{repo}/releases/{release_id}/assets{?name,label}', Object.assign(Object.assign({}, repo()), { release_id: release.data.id, name: asset_name, data: '@result/moc-0.8.0.js' }));
+        core.debug(`Uploading ${file} to ${asset_name} in release ${tag}.    GXXX ${JSON.stringify(repo())}`);
+        const uploaded_asset = yield octokit.request('POST {origin}/repos/{owner}/{repo}/releases/{release_id}/assets{?name,label}', Object.assign(Object.assign({}, repo()), { release_id: release.data.id, name: asset_name, data: '@result/moc-0.8.0.js', origin: 'https://uploads.github.com' }));
         return uploaded_asset.data.browser_download_url;
     });
 }
