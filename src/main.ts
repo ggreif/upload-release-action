@@ -1,3 +1,4 @@
+import * as fs from 'fs'
 import {Octokit} from '@octokit/core'
 import {Endpoints} from '@octokit/types'
 import * as core from '@actions/core'
@@ -9,15 +10,15 @@ const releaseByTag = 'GET /repos/{owner}/{repo}/releases/tags/{tag}' as const
 const createRelease = 'POST /repos/{owner}/{repo}/releases' as const
 const repoAssets =
   'GET /repos/{owner}/{repo}/releases/{release_id}/assets' as const
-//const uploadAssets =
-//  'POST {origin}/repos/{owner}/{repo}/releases/{release_id}/assets{?name,label}' as const
+const uploadAssets =
+  'POST {origin}/repos/{owner}/{repo}/releases/{release_id}/assets{?name,label}' as const
 const deleteAssets =
   'DELETE /repos/{owner}/{repo}/releases/assets/{asset_id}' as const
 
 type ReleaseByTagResp = Endpoints[typeof releaseByTag]['response']
 type CreateReleaseResp = Endpoints[typeof createRelease]['response']
 type RepoAssetsResp = Endpoints[typeof repoAssets]['response']['data']
-//type UploadAssetResp = Endpoints[typeof uploadAssets]['response']
+type UploadAssetResp = Endpoints[typeof uploadAssets]['response']
 
 async function get_release_by_tag(
   tag: string,
@@ -59,6 +60,13 @@ async function upload_to_release(
   overwrite: boolean,
   octokit: ReturnType<(typeof github)['getOctokit']>
 ): Promise<undefined | string> {
+  const stat = fs.statSync(file)
+  if (!stat.isFile()) {
+    core.debug(`Skipping ${file}, since its not a file`)
+    return
+  }
+  const file_size = stat.size
+
   // Check for duplicates.
   const assets: RepoAssetsResp = await octokit.paginate(repoAssets, {
     ...repo(),
@@ -85,17 +93,28 @@ async function upload_to_release(
   }
 
   core.debug(
-    `Uploading ${file} to ${asset_name} in release ${tag}.    GXXX ${JSON.stringify(
+    `Uploading ${file} to ${asset_name} in release ${tag}.    MGXXX ${JSON.stringify(
       repo()
     )}`
   )
-  const uploaded_asset = await octokit.request(
-    'POST /repos/{owner}/{repo}/releases/{release_id}/assets{?name,label}',
+  const uploaded_asset: UploadAssetResp = await octokit.request(
+    'POST {origin}/repos/{owner}/{repo}/releases/{release_id}/assets{?name,label}',
     {
       ...repo(),
+      request: {
+        fetch(...args: any) {
+          return core.debug(`fetch   MGXXX ${JSON.stringify(args)}`)
+        }
+      },
       release_id: release.data.id,
       name: asset_name,
-      data: '@result/moc-0.8.0.js'
+      // data: '@result/moc-0.8.0.js',
+      headers: {
+        'content-type': 'binary/octet-stream',
+        'content-length': file_size
+      },
+      data: '@' + file,
+      origin: 'https://upload.github.com'
     }
   )
   return uploaded_asset.data.browser_download_url

@@ -39,6 +39,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+const fs = __importStar(__nccwpck_require__(7147));
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const path = __importStar(__nccwpck_require__(1017));
@@ -46,10 +47,8 @@ const glob = __importStar(__nccwpck_require__(1957));
 const releaseByTag = 'GET /repos/{owner}/{repo}/releases/tags/{tag}';
 const createRelease = 'POST /repos/{owner}/{repo}/releases';
 const repoAssets = 'GET /repos/{owner}/{repo}/releases/{release_id}/assets';
-//const uploadAssets =
-//  'POST {origin}/repos/{owner}/{repo}/releases/{release_id}/assets{?name,label}' as const
+const uploadAssets = 'POST {origin}/repos/{owner}/{repo}/releases/{release_id}/assets{?name,label}';
 const deleteAssets = 'DELETE /repos/{owner}/{repo}/releases/assets/{asset_id}';
-//type UploadAssetResp = Endpoints[typeof uploadAssets]['response']
 function get_release_by_tag(tag, prerelease, release_name, body, octokit) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -70,6 +69,12 @@ function get_release_by_tag(tag, prerelease, release_name, body, octokit) {
 }
 function upload_to_release(release, file, asset_name, tag, overwrite, octokit) {
     return __awaiter(this, void 0, void 0, function* () {
+        const stat = fs.statSync(file);
+        if (!stat.isFile()) {
+            core.debug(`Skipping ${file}, since its not a file`);
+            return;
+        }
+        const file_size = stat.size;
         // Check for duplicates.
         const assets = yield octokit.paginate(repoAssets, Object.assign(Object.assign({}, repo()), { release_id: release.data.id }));
         const duplicate_asset = assets.find(a => a.name === asset_name);
@@ -86,8 +91,17 @@ function upload_to_release(release, file, asset_name, tag, overwrite, octokit) {
         else {
             core.debug(`RRRR No pre-existing asset called ${asset_name} found in release ${tag}. All good.`);
         }
-        core.debug(`Uploading ${file} to ${asset_name} in release ${tag}.    GXXX ${JSON.stringify(repo())}`);
-        const uploaded_asset = yield octokit.request('POST /repos/{owner}/{repo}/releases/{release_id}/assets{?name,label}', Object.assign(Object.assign({}, repo()), { release_id: release.data.id, name: asset_name, data: '@result/moc-0.8.0.js' }));
+        core.debug(`Uploading ${file} to ${asset_name} in release ${tag}.    MGXXX ${JSON.stringify(repo())}`);
+        const uploaded_asset = yield octokit.request('POST {origin}/repos/{owner}/{repo}/releases/{release_id}/assets{?name,label}', Object.assign(Object.assign({}, repo()), { request: {
+                fetch(...args) {
+                    return core.debug(`fetch   MGXXX ${JSON.stringify(args)}`);
+                },
+            }, release_id: release.data.id, name: asset_name, 
+            // data: '@result/moc-0.8.0.js',
+            headers: {
+                'content-type': 'binary/octet-stream',
+                'content-length': file_size
+            }, data: '@' + file, origin: 'https://upload.github.com' }));
         return uploaded_asset.data.browser_download_url;
     });
 }
