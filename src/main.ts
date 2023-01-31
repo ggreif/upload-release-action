@@ -114,8 +114,7 @@ async function upload_to_release(
         'content-type': 'binary/octet-stream',
         'content-length': file_size
       },
-      data: '@' + file,
-      origin: 'https://upload.github.com'
+      data: fs.createReadStream(file)
     }
   )
   return uploaded_asset.data.browser_download_url
