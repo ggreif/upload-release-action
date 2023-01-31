@@ -44,6 +44,7 @@ const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const path = __importStar(__nccwpck_require__(1017));
 const glob = __importStar(__nccwpck_require__(1957));
+const util_1 = __nccwpck_require__(3837);
 const releaseByTag = 'GET /repos/{owner}/{repo}/releases/tags/{tag}';
 const createRelease = 'POST /repos/{owner}/{repo}/releases';
 const repoAssets = 'GET /repos/{owner}/{repo}/releases/{release_id}/assets';
@@ -94,8 +95,8 @@ function upload_to_release(release, file, asset_name, tag, overwrite, octokit) {
         core.debug(`Uploading ${file} to ${asset_name} in release ${tag}.    MGXXX ${JSON.stringify(repo())}`);
         const uploaded_asset = yield octokit.request('POST {origin}/repos/{owner}/{repo}/releases/{release_id}/assets{?name,label}', Object.assign(Object.assign({}, repo()), { request: {
                 fetch(...args) {
-                    return core.debug(`fetch   MGXXX ${JSON.stringify(args)}`);
-                },
+                    return core.debug(`fetch   MGXXX ${(0, util_1.inspect)(args)}`);
+                }
             }, release_id: release.data.id, name: asset_name, 
             // data: '@result/moc-0.8.0.js',
             headers: {

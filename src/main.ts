@@ -5,6 +5,7 @@ import * as core from '@actions/core'
 import * as github from '@actions/github'
 import * as path from 'path'
 import * as glob from 'glob'
+import {inspect} from 'util'
 
 const releaseByTag = 'GET /repos/{owner}/{repo}/releases/tags/{tag}' as const
 const createRelease = 'POST /repos/{owner}/{repo}/releases' as const
@@ -103,7 +104,7 @@ async function upload_to_release(
       ...repo(),
       request: {
         fetch(...args: any) {
-          return core.debug(`fetch   MGXXX ${JSON.stringify(args)}`)
+          return core.debug(`fetch   MGXXX ${inspect(args)}`)
         }
       },
       release_id: release.data.id,
