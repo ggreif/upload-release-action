@@ -10,7 +10,7 @@ const createRelease = 'POST /repos/{owner}/{repo}/releases' as const
 const repoAssets =
   'GET /repos/{owner}/{repo}/releases/{release_id}/assets' as const
 const uploadAssets =
-  'POST {origin}/repos/{owner}/{repo}/releases/{release_id}/assets{?name,label}' as const
+  'POST /repos/{owner}/{repo}/releases/{release_id}/assets{?name,label}' as const
 const deleteAssets =
   'DELETE /repos/{owner}/{repo}/releases/assets/{asset_id}' as const
 
