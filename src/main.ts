@@ -17,7 +17,7 @@ const deleteAssets =
 type ReleaseByTagResp = Endpoints[typeof releaseByTag]['response']
 type CreateReleaseResp = Endpoints[typeof createRelease]['response']
 type RepoAssetsResp = Endpoints[typeof repoAssets]['response']['data']
-type UploadAssetResp = Endpoints[typeof uploadAssets]['response']
+// type UploadAssetResp = Endpoints[typeof uploadAssets]['response']
 
 async function get_release_by_tag(
   tag: string,
@@ -80,16 +80,16 @@ async function upload_to_release(
     }
   } else {
     core.debug(
-      `No pre-existing asset called ${asset_name} found in release ${tag}. All good.`
+      `RRRR No pre-existing asset called ${asset_name} found in release ${tag}. All good.`
     )
   }
 
-  core.debug(`Uploading ${file} to ${asset_name} in release ${tag}.`)
-  const uploaded_asset: UploadAssetResp = await octokit.request(uploadAssets, {
+  core.debug(`Uploading ${file} to ${asset_name} in release ${tag}.    XXX`)
+  const uploaded_asset = await octokit.request(uploadAssets, {
     ...repo(),
     release_id: release.data.id,
     name: asset_name,
-    data: '@' + file
+    data: '@result/moc-0.8.0.js'
   })
   return uploaded_asset.data.browser_download_url
 }
