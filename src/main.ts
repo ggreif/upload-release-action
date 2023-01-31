@@ -5,7 +5,7 @@ import * as core from '@actions/core'
 import * as github from '@actions/github'
 import * as path from 'path'
 import * as glob from 'glob'
-import {inspect} from 'util'
+//import {inspect} from 'util'
 
 const releaseByTag = 'GET /repos/{owner}/{repo}/releases/tags/{tag}' as const
 const createRelease = 'POST /repos/{owner}/{repo}/releases' as const
@@ -102,11 +102,11 @@ async function upload_to_release(
     'POST /repos/{owner}/{repo}/releases/{release_id}/assets{?name,label}',
     {
       ...repo(),
-      request: {
-        fetch(...args: any) {
-          return core.debug(`fetch   MGXXX ${inspect(args)}`)
-        }
-      },
+      //request: {
+      //  fetch(...args: any) {
+      //    return core.debug(`fetch   MGXXX ${inspect(args)}`)
+      //  }
+      //},
       release_id: release.data.id,
       name: asset_name,
       // data: '@result/moc-0.8.0.js',
