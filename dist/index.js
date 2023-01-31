@@ -48,8 +48,7 @@ const glob = __importStar(__nccwpck_require__(1957));
 const releaseByTag = 'GET /repos/{owner}/{repo}/releases/tags/{tag}';
 const createRelease = 'POST /repos/{owner}/{repo}/releases';
 const repoAssets = 'GET /repos/{owner}/{repo}/releases/{release_id}/assets';
-//const uploadAssets =
-//  'POST {origin}/repos/{owner}/{repo}/releases/{release_id}/assets{?name,label}' as const
+const uploadAssets = 'POST {origin}/repos/{owner}/{repo}/releases/{release_id}/assets{?name,label}';
 const deleteAssets = 'DELETE /repos/{owner}/{repo}/releases/assets/{asset_id}';
 //type UploadAssetResp = Endpoints[typeof uploadAssets]['response']
 function get_release_by_tag(tag, prerelease, release_name, body, octokit) {
@@ -78,6 +77,7 @@ function upload_to_release(release, file, asset_name, tag, overwrite, octokit) {
             return;
         }
         const file_size = stat.size;
+        const file_bytes = fs.createReadStream(file);
         // Check for duplicates.
         const assets = yield octokit.paginate(repoAssets, Object.assign(Object.assign({}, repo()), { release_id: release.data.id }));
         const duplicate_asset = assets.find(a => a.name === asset_name);
@@ -92,21 +92,13 @@ function upload_to_release(release, file, asset_name, tag, overwrite, octokit) {
             }
         }
         else {
-            core.debug(`RRRR No pre-existing asset called ${asset_name} found in release ${tag}. All good.`);
+            core.debug(`No pre-existing asset called ${asset_name} found in release ${tag}. All good.`);
         }
-        core.debug(`Uploading ${file} to ${asset_name} in release ${tag}.    MGXXX ${JSON.stringify(repo())}`);
-        const uploaded_asset = yield octokit.request('POST /repos/{owner}/{repo}/releases/{release_id}/assets{?name,label}', Object.assign(Object.assign({}, repo()), { 
-            //request: {
-            //  fetch(...args: any) {
-            //    return core.debug(`fetch   MGXXX ${inspect(args)}`)
-            //  }
-            //},
-            release_id: release.data.id, name: asset_name, 
-            // data: '@result/moc-0.8.0.js',
-            headers: {
+        core.debug(`Uploading ${file} to ${asset_name} in release ${tag}.`);
+        const uploaded_asset = yield octokit.request(uploadAssets, Object.assign(Object.assign({}, repo()), { release_id: release.data.id, url: release.data.upload_url, name: asset_name, data: file_bytes, headers: {
                 'content-type': 'binary/octet-stream',
                 'content-length': file_size
-            }, data: fs.createReadStream(file) }));
+            } }));
         return uploaded_asset.data.browser_download_url;
     });
 }

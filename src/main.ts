@@ -11,8 +11,8 @@ const releaseByTag = 'GET /repos/{owner}/{repo}/releases/tags/{tag}' as const
 const createRelease = 'POST /repos/{owner}/{repo}/releases' as const
 const repoAssets =
   'GET /repos/{owner}/{repo}/releases/{release_id}/assets' as const
-//const uploadAssets =
-//  'POST {origin}/repos/{owner}/{repo}/releases/{release_id}/assets{?name,label}' as const
+const uploadAssets =
+  'POST {origin}/repos/{owner}/{repo}/releases/{release_id}/assets{?name,label}' as const
 const deleteAssets =
   'DELETE /repos/{owner}/{repo}/releases/assets/{asset_id}' as const
 
@@ -67,6 +67,7 @@ async function upload_to_release(
     return
   }
   const file_size = stat.size
+  const file_bytes = fs.createReadStream(file)
 
   // Check for duplicates.
   const assets: RepoAssetsResp = await octokit.paginate(repoAssets, {
@@ -89,34 +90,22 @@ async function upload_to_release(
     }
   } else {
     core.debug(
-      `RRRR No pre-existing asset called ${asset_name} found in release ${tag}. All good.`
+      `No pre-existing asset called ${asset_name} found in release ${tag}. All good.`
     )
   }
 
-  core.debug(
-    `Uploading ${file} to ${asset_name} in release ${tag}.    MGXXX ${JSON.stringify(
-      repo()
-    )}`
-  )
-  const uploaded_asset = await octokit.request(
-    'POST /repos/{owner}/{repo}/releases/{release_id}/assets{?name,label}',
-    {
-      ...repo(),
-      //request: {
-      //  fetch(...args: any) {
-      //    return core.debug(`fetch   MGXXX ${inspect(args)}`)
-      //  }
-      //},
-      release_id: release.data.id,
-      name: asset_name,
-      // data: '@result/moc-0.8.0.js',
-      headers: {
-        'content-type': 'binary/octet-stream',
-        'content-length': file_size
-      },
-      data: fs.createReadStream(file)
+  core.debug(`Uploading ${file} to ${asset_name} in release ${tag}.`)
+  const uploaded_asset: any = await octokit.request(uploadAssets, {
+    ...repo(),
+    release_id: release.data.id,
+    url: release.data.upload_url,
+    name: asset_name,
+    data: file_bytes as any,
+    headers: {
+      'content-type': 'binary/octet-stream',
+      'content-length': file_size
     }
-  )
+  })
   return uploaded_asset.data.browser_download_url
 }
 
