@@ -11,15 +11,15 @@ const releaseByTag = 'GET /repos/{owner}/{repo}/releases/tags/{tag}' as const
 const createRelease = 'POST /repos/{owner}/{repo}/releases' as const
 const repoAssets =
   'GET /repos/{owner}/{repo}/releases/{release_id}/assets' as const
-const uploadAssets =
-  'POST {origin}/repos/{owner}/{repo}/releases/{release_id}/assets{?name,label}' as const
+//const uploadAssets =
+//  'POST {origin}/repos/{owner}/{repo}/releases/{release_id}/assets{?name,label}' as const
 const deleteAssets =
   'DELETE /repos/{owner}/{repo}/releases/assets/{asset_id}' as const
 
 type ReleaseByTagResp = Endpoints[typeof releaseByTag]['response']
 type CreateReleaseResp = Endpoints[typeof createRelease]['response']
 type RepoAssetsResp = Endpoints[typeof repoAssets]['response']['data']
-type UploadAssetResp = Endpoints[typeof uploadAssets]['response']
+//type UploadAssetResp = Endpoints[typeof uploadAssets]['response']
 
 async function get_release_by_tag(
   tag: string,
@@ -98,8 +98,8 @@ async function upload_to_release(
       repo()
     )}`
   )
-  const uploaded_asset: UploadAssetResp = await octokit.request(
-    'POST {origin}/repos/{owner}/{repo}/releases/{release_id}/assets{?name,label}',
+  const uploaded_asset = await octokit.request(
+    'POST /repos/{owner}/{repo}/releases/{release_id}/assets{?name,label}',
     {
       ...repo(),
       request: {
